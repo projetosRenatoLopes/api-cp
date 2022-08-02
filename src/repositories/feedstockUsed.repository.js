@@ -36,14 +36,15 @@ exports.getFeedstockUsed = async (req, res, next) => {
 }
 
 exports.postFeedstockUsed = async (req, res, next) => {
-    console.log(req.body)
     try {
         const vToken = verifyJWT(req.headers.authorization)
         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
         else if (vToken.status === 200) {
-            const result = await db.query("INSERT INTO feedstockused (feedstockid, typemeasurement, measurementid, quantity, productionid) VALUES ('" + [req.body.feedstockid] + "','" + [req.body.typemeasurement] + "','" + [req.body.measurementid] + "','" + [req.body.quantity] + "','" + [req.body.productionid] + "');");
+            const result = await db.query("INSERT INTO feedstockused (feedstockid, quantity, productionid) VALUES ('" + [req.body.feedstockid] + "','" + [req.body.quantity] + "','" + [req.body.productionid] + "');");
+            console.log(result)
             return res.status(201).send({ "status": 201, "message": "Dados inseridos com sucesso" });
+        } else {
         }
 
     } catch (error) {
@@ -73,16 +74,16 @@ exports.updateFeedstockUsed = async (req, res, next) => {
 }
 
 exports.deleteFeedstockUsed = async (req, res, next) => {
-    try {
+    try {        
         const vToken = verifyJWT(req.headers.authorization)
         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
         else if (vToken.status === 200) {
-            const findId = await db.query("SELECT feedstockid FROM feedstockused WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
+            const findId = await db.query("SELECT feedstockid FROM feedstock WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
             if (findId.rowCount === 0) {
                 return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
             } else {
-                const result = await db.query("DELETE FROM feedstockused WHERE uuid='" + [req.body.uuid] + "';")
+                await db.query("DELETE FROM feedstockused WHERE uuid='" + [req.body.uuid] + "';")                
                 return res.status(201).send({ "status": 201, "message": "Dados excluidos com sucesso" });
             }
         }

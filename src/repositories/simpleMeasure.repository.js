@@ -54,7 +54,7 @@ exports.updateSimpleMeasure = async (req, res, next) => {
                 return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
             } else {
                 const verifyDouble = await db.query("SELECT * FROM simplemeasure where uuid<>'" + [req.body.uuid] + "' and name='" + [req.body.name] + "'")
-                if(verifyDouble.rowCount > 0){
+                if (verifyDouble.rowCount > 0) {
                     return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
                 } else {
                     const result = await db.query("UPDATE simplemeasure SET name = '" + [req.body.name] + "', typemeasure='" + [req.body.typemeasure] + "', quantity='" + [req.body.quantity] + "', modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "' WHERE uuid='" + [req.body.uuid] + "';")
@@ -77,8 +77,13 @@ exports.deleteSimpleMeasure = async (req, res, next) => {
             if (findId.rowCount === 0) {
                 return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
             } else {
-                const result = await db.query("DELETE FROM simplemeasure WHERE uuid='" + [req.body.uuid] + "';")
-                return res.status(200).send({ "status": 200, "message": "Dados excluidos com sucesso" });
+                const resultMeasureUsed = await db.query("SELECT * FROM feedstock WHERE measurement='" + [req.body.uuid] + "';")
+                if (resultMeasureUsed.rowCount !== 0) {
+                    return res.status(401).send({ "status": 401, "message": "Medida sendo utilizada por Matéria Prima" });
+                } else{
+                    const result = await db.query("DELETE FROM simplemeasure WHERE uuid='" + [req.body.uuid] + "';")
+                    return res.status(200).send({ "status": 200, "message": "Dados excluidos com sucesso" });
+                }
             }
         }
     } catch (error) {

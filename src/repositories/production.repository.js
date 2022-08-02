@@ -11,7 +11,7 @@ exports.getProduction = async (req, res, next) => {
         else if (vToken.status === 200) {
             const productionsRes = await db.query("SELECT P.uuid, P.name, P.price, U.name AS createby, P.createdate, R.name AS modifyby, P.modifydate FROM production P LEFT JOIN users U ON P.createby=CAST(U.uuid AS VARCHAR) LEFT JOIN users R ON P.modifyby=CAST(R.uuid AS VARCHAR);");
 
-            const feedstockUsed = await db.query("SELECT U.uuid, U.feedstockid, F.name AS feedstock, U.measurementid, S.name AS measurement,  U.quantity, U.productionid FROM feedstockused U LEFT JOIN feedstock F ON CAST(U.feedstockid AS VARCHAR)=CAST(F.uuid AS VARCHAR) LEFT JOIN simplemeasure S ON CAST(U.measurementid AS VARCHAR)=CAST(S.uuid AS VARCHAR)");
+            const feedstockUsed = await db.query("SELECT U.uuid, U.feedstockid, F.name AS feedstock, F.measurement AS measurementid, S.name AS measurement,  U.quantity, U.productionid FROM feedstockused U LEFT JOIN feedstock F ON CAST(U.feedstockid AS VARCHAR)=CAST(F.uuid AS VARCHAR) LEFT JOIN simplemeasure S ON CAST(F.measurement AS VARCHAR)=CAST(S.uuid AS VARCHAR)");
             const feedstock = await db.query("SELECT F.uuid, F.name, F.measurement as measurementid, S.name as measurement, F.quantity, F.price, U.name as createby, F.createdate, R.name as modifyby, F.modifydate FROM feedstock F LEFT JOIN users U ON F.createby=CAST(U.uuid AS VARCHAR) LEFT JOIN users R ON F.modifyby=CAST(R.uuid AS VARCHAR) LEFT JOIN simplemeasure S ON CAST(F.measurement AS VARCHAR)=CAST(S.uuid AS VARCHAR) ORDER BY F.name;")
             var feedstockUsedRes = [];
             feedstockUsed.rows.forEach(fsu => {
@@ -24,9 +24,6 @@ exports.getProduction = async (req, res, next) => {
                 })
                 feedstockUsedRes.push({ "uuid": fsu.uuid, "feedstockid": fsu.feedstockid, "feedstock": fsu.feedstock, "measurementid": fsu.measurementid, "measurement": fsu.measurement, "quantity": fsu.quantity, "price": price, "productionid": fsu.productionid })
             })
-
-
-
 
             var productions = [];
             productionsRes.rows.forEach(prod => {
@@ -99,7 +96,8 @@ exports.deleteProduction = async (req, res, next) => {
             if (findId.rowCount === 0) {
                 return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
             } else {
-                const result = await db.query("DELETE FROM production WHERE uuid='" + [req.body.uuid] + "';")
+                await db.query("DELETE FROM production WHERE uuid='" + [req.body.uuid] + "';")
+                await db.query("DELETE FROM feedstockused WHERE productionid='" + [req.body.uuid] + "';")
                 return res.status(200).send({ "status": 200, "message": "Dados excluidos com sucesso" });
             }
         }

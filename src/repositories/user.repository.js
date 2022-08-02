@@ -59,22 +59,23 @@ exports.validToken = async (req, res, next) => {
 
 exports.updateUser = async (req, res, next) => {
 
-    try {
-        console.log(req.body)
+    try {        
         const vToken = verifyJWT(req.headers.authorization)
         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
         else if (vToken.status === 200) {
-            const user = await db.query("SELECT name from users WHERE uuid = '" + vToken.id + "';")
+            const user = await db.query("SELECT name from users WHERE uuid = '" + vToken.id + "';")            
             if (user.rowCount === 0) {
-                return res.status(401).send({ "status": 401, "message": "Usuário inválido." });
+                console.log('Usuário não encontrado')
+                return res.status(401).send({ "status": 404, "message": "Usuário inválido." });
             } else {
-                const result = await db.query("SELECT * from users WHERE uuid = '" + vToken.id + "' and pass = '" + [req.body.pass] + "';");
-                if (result.rowCount === 0) {
+                const result = await db.query("SELECT * from users WHERE uuid = '" + vToken.id + "' and pass = '" + [req.body[0].pass] + "';");
+                if (result.rowCount === 0) {         
+                    console.log('Senha')           
                     return res.status(401).send({ "status": 401, "message": "Senha ou ID incorretos." });
                 } else {
-                    await db.query("UPDATE users SET name = '" + [req.body.name] + "', pass = '" + [req.body.newpass] + "' WHERE uuid = '" + vToken.id + "';");
-                    return res.status(200).send({ "status": 200, "message": "Usuário alterado com sucesso", "user": [req.body.name] });
+                    await db.query("UPDATE users SET name = '" + [req.body[0].name] + "', pass = '" + [req.body[0].newpass] + "' WHERE uuid = '" + vToken.id + "';");
+                    return res.status(200).send({ "status": 200, "message": "Usuário alterado com sucesso", "user": [req.body[0].name] });
                 }
             }
         }

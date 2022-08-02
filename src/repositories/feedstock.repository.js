@@ -27,8 +27,13 @@ exports.postFeedstock = async (req, res, next) => {
         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
         else if (vToken.status === 200) {
-            const result = await db.query("INSERT INTO feedstock (name, measurement, quantity, price, createby, createdate, modifyby, modifydate) VALUES ('" + [req.body.name] + "','" + [req.body.measurement] + "','" + [req.body.quantity] + "','" + [req.body.price] + "','" + vToken.id + "','" + Date.now() + "','" + vToken.id + "','" + Date.now() + "');");
-            return res.status(201).send({ "status": 201, "message": "Dados inseridos com sucesso" });
+            const resultDesc = await db.query("SELECT * FROM feedstock WHERE name='" + [req.body.name] + "'")
+            if (resultDesc.rowCount > 0) {
+                return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
+            } else {
+                await db.query("INSERT INTO feedstock (name, measurement, quantity, price, createby, createdate, modifyby, modifydate) VALUES ('" + [req.body.name] + "','" + [req.body.measurement] + "','" + [req.body.quantity] + "','" + [req.body.price] + "','" + vToken.id + "','" + Date.now() + "','" + vToken.id + "','" + Date.now() + "');");
+                return res.status(201).send({ "status": 201, "message": "Dados inseridos com sucesso" });
+            }
         }
 
     } catch (error) {
@@ -67,8 +72,13 @@ exports.deleteFeedstock = async (req, res, next) => {
             if (findId.rowCount === 0) {
                 return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
             } else {
-                const result = await db.query("DELETE FROM feedstock WHERE uuid='" + [req.body.uuid] + "';")
-                return res.status(200).send({ "status": 200, "message": "Dados excluidos com sucesso" });
+                const resultMeasureUsed = await db.query("SELECT * FROM feedstockused WHERE feedstockid='" + [req.body.uuid] + "';")
+                if (resultMeasureUsed.rowCount !== 0) {
+                    return res.status(401).send({ "status": 401, "message": "Matéria Prima sendo utilizada por Produção" });
+                } else {
+                    await db.query("DELETE FROM feedstock WHERE uuid='" + [req.body.uuid] + "';")
+                    return res.status(200).send({ "status": 200, "message": "Dados excluidos com sucesso" });
+                }
             }
         }
     } catch (error) {
