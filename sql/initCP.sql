@@ -50,9 +50,7 @@ CREATE TABLE IF NOT EXISTS production (
 
 CREATE TABLE IF NOT EXISTS feedstockused (
     uuid uuid DEFAULT uuid_generate_v4(),
-    feedstockid VARCHAR NOT NULL,
-    typemeasurement VARCHAR NOT NULL,
-    measurementid VARCHAR NOT NULL,
+    feedstockid VARCHAR NOT NULL,    
     quantity VARCHAR NOT NULL,    
     productionid VARCHAR NOT NULL,    
     PRIMARY KEY (uuid)
@@ -70,4 +68,5 @@ CREATE TABLE IF NOT EXISTS users (
 
 INSERT INTO exactmeasure (name, createby, createdate, modifyby, modifydate, ordenation) values ('ml','system','1658766035713','system','1658766035713','0');
 INSERT INTO exactmeasure (name, createby, createdate, modifyby, modifydate, ordenation) values ('gramas','system','1658766035713','system','1658766035713','1');
+INSERT INTO exactmeasure (name, createby, createdate, modifyby, modifydate, ordenation) values ('unidade','system','1658766035713','system','1658766035713','2');
 
