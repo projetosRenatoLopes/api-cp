@@ -56,6 +56,27 @@ CREATE TABLE IF NOT EXISTS feedstockused (
     PRIMARY KEY (uuid)
 );
 
+-- work packaging and others
+CREATE TABLE IF NOT EXISTS wpo (
+    uuid uuid DEFAULT uuid_generate_v4(),
+    name VARCHAR NOT NULL UNIQUE,    
+    quantity VARCHAR NOT NULL,
+    price VARCHAR NOT NULL,
+    createby VARCHAR NOT NULL,
+    createdate VARCHAR NOT NULL,
+    modifyby VARCHAR NOT NULL,
+    modifydate VARCHAR NOT NULL,    
+    PRIMARY KEY (uuid)
+);
+
+CREATE TABLE IF NOT EXISTS wpoused (
+    uuid uuid DEFAULT uuid_generate_v4(),
+    wpoid VARCHAR NOT NULL,    
+    quantity VARCHAR NOT NULL,    
+    productionid VARCHAR NOT NULL,    
+    PRIMARY KEY (uuid)
+);
+
 CREATE TABLE IF NOT EXISTS users (
     uuid uuid DEFAULT uuid_generate_v4(),
     nickname VARCHAR NOT NULL UNIQUE,

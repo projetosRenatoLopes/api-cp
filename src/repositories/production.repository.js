@@ -12,6 +12,8 @@ exports.getProduction = async (req, res, next) => {
             const productionsRes = await db.query("SELECT P.uuid, P.name, P.price, U.name AS createby, P.createdate, R.name AS modifyby, P.modifydate FROM production P LEFT JOIN users U ON P.createby=CAST(U.uuid AS VARCHAR) LEFT JOIN users R ON P.modifyby=CAST(R.uuid AS VARCHAR) ORDER BY P.name;");
 
             const feedstockUsed = await db.query("SELECT U.uuid, U.feedstockid, F.name AS feedstock, F.measurement AS measurementid, S.name AS measurement,  U.quantity, U.productionid FROM feedstockused U LEFT JOIN feedstock F ON CAST(U.feedstockid AS VARCHAR)=CAST(F.uuid AS VARCHAR) LEFT JOIN simplemeasure S ON CAST(F.measurement AS VARCHAR)=CAST(S.uuid AS VARCHAR) ORDER BY F.name;");
+            const wpoUsed = await db.query("SELECT U.uuid, U.wpoid, F.name AS wpo, U.quantity, U.productionid FROM wpoused U LEFT JOIN wpo F ON CAST(U.wpoid AS VARCHAR)=CAST(F.uuid AS VARCHAR) ORDER BY F.name;");
+            const wpo = await db.query("SELECT F.uuid, F.name, F.quantity, F.price, U.name as createby, F.createdate, R.name as modifyby, F.modifydate FROM wpo F LEFT JOIN users U ON F.createby=CAST(U.uuid AS VARCHAR) LEFT JOIN users R ON F.modifyby=CAST(R.uuid AS VARCHAR) ORDER BY F.name;")
             const feedstock = await db.query("SELECT F.uuid, F.name, F.measurement as measurementid, S.name as measurement, F.quantity, F.price, U.name as createby, F.createdate, R.name as modifyby, F.modifydate FROM feedstock F LEFT JOIN users U ON F.createby=CAST(U.uuid AS VARCHAR) LEFT JOIN users R ON F.modifyby=CAST(R.uuid AS VARCHAR) LEFT JOIN simplemeasure S ON CAST(F.measurement AS VARCHAR)=CAST(S.uuid AS VARCHAR) ORDER BY F.name;")
             var feedstockUsedRes = [];
             feedstockUsed.rows.forEach(fsu => {
@@ -24,6 +26,19 @@ exports.getProduction = async (req, res, next) => {
                 feedstockUsedRes.push({ "uuid": fsu.uuid, "feedstockid": fsu.feedstockid, "feedstock": fsu.feedstock, "measurementid": fsu.measurementid, "measurement": fsu.measurement, "quantity": fsu.quantity, "price": price, "productionid": fsu.productionid })
             })
 
+            var wpoUsedRes = [];
+            wpoUsed.rows.forEach(fsu => {
+                var price;
+                wpo.rows.forEach(fs => {
+                    if (fsu.wpoid === fs.uuid) {
+                        price = (fs.price / fs.quantity) * fsu.quantity
+                    }
+                })
+                wpoUsedRes.push({ "uuid": fsu.uuid, "wpoid": fsu.wpoid, "wpo": fsu.wpo, "quantity": fsu.quantity, "price": price, "productionid": fsu.productionid })
+            })
+
+
+
             var productions = [];
             productionsRes.rows.forEach(prod => {
                 var feedstockUsed = [];
@@ -34,7 +49,15 @@ exports.getProduction = async (req, res, next) => {
                         feedstockUsed.push(fdUs)
                     }
                 })
-                productions.push({ "uuid": prod.uuid, "name": prod.name, "price": prod.price, "cost": cost, "feedstockused": feedstockUsed, "createby": prod.createby, "createdate": prod.createdate, "modifyby": prod.modifyby, "modifydate": prod.modifydate })
+                var wpoUsed = []
+                wpoUsedRes.forEach(wpou => {
+                    if (wpou.productionid === prod.uuid) {
+                        cost += wpou.price
+                        wpoUsed.push(wpou)
+                    }
+                })
+
+                productions.push({ "uuid": prod.uuid, "name": prod.name, "price": prod.price, "cost": cost, "feedstockused": feedstockUsed, "wpoused": wpoUsed, "createby": prod.createby, "createdate": prod.createdate, "modifyby": prod.modifyby, "modifydate": prod.modifydate })
             })
 
             const response = {
@@ -65,7 +88,7 @@ exports.postProduction = async (req, res, next) => {
 }
 
 exports.updateProduction = async (req, res, next) => {
-    try {        
+    try {
         const vToken = verifyJWT(req.headers.authorization)
         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
@@ -95,6 +118,7 @@ exports.deleteProduction = async (req, res, next) => {
             } else {
                 await db.query("DELETE FROM production WHERE uuid='" + [req.body.uuid] + "';")
                 await db.query("DELETE FROM feedstockused WHERE productionid='" + [req.body.uuid] + "';")
+                await db.query("DELETE FROM wpoused WHERE productionid='" + [req.body.uuid] + "';")
                 return res.status(200).send({ "status": 200, "message": "Dados excluidos com sucesso" });
             }
         }
