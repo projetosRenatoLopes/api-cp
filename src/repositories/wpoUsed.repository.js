@@ -40,7 +40,7 @@ exports.postWPOUsed = async (req, res, next) => {
         else if (vToken.status === 200) {
             const result = await db.query("SELECT * FROM wpoused WHERE wpoid='" + [req.body.wpoid] + "' AND productionid='" + [req.body.productionid] + "';");
             if (result.rowCount > 0) {                
-                return res.status(200).send({ "status": 200, "message": "Máteria prima já utilizada" });
+                return res.status(200).send({ "status": 200, "message": "WPO já utilizado" });
             } else {
                 await db.query("INSERT INTO wpoused (wpoid, quantity, productionid) VALUES ('" + [req.body.wpoid] + "','" + [req.body.quantity] + "','" + [req.body.productionid] + "');");
                 db.query("UPDATE production SET modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "' WHERE uuid='" + [req.body.productionid] + "';")
