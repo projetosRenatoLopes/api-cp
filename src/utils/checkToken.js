@@ -8,7 +8,7 @@ function verifyJWT(token) {
         resposta = { status: 401, auth: false, message: 'Token não informado.' };
     } else {
 
-        jwt.verify(token, secret, function (err, decoded) {
+        jwt.verify(token, `${secret}`, function (err, decoded) {
             if (err) {
                 resposta = { status: 401, auth: false, message: 'Token inválido.' };
             } else {
