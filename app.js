@@ -44,6 +44,7 @@ const routeFeedstockUsed = require('./routes/feedstockUsed');
 const routeWPOUsed = require('./routes/wpoUsed');
 const routeWPOU = require('./routes/wpo');
 const routeDash = require('./routes/dashboard');
+const routeBackup = require('./routes/backup');
 
 app.use('/simplemeasure', routeSimpleMeasure);
 app.use('/exactmeasure', routeExactMeasure);
@@ -54,6 +55,7 @@ app.use('/feedstockused', routeFeedstockUsed);
 app.use('/wpoused', routeWPOUsed);
 app.use('/wpo', routeWPOU);
 app.use('/dashboard', routeDash);
+app.use('/backup', routeBackup);
 
 app.use('/api', (req, res, next) => {
     res.status(200).send('API Custo de Produção');
