@@ -1,3 +1,4 @@
+const { application } = require('express');
 const { db } = require('../db');
 const { verifyJWT } = require('../utils/checkToken');
 
@@ -19,56 +20,149 @@ exports.getBackup = async (req, res, next) => {
             const wpo = await db.query("SELECT * FROM wpo;")
             const wpoused = await db.query("SELECT * FROM wpoused;");
 
-            var exactmeasureQuery = [];
+            var allQuerys = [];
             exactmeasure.rows.forEach(item => {
-                exactmeasureQuery.push(`INSERT INTO exactmeasure(uuid,name,createby,createdate,modifyby,modifydate,ordenation)VALUES('${item.uuid}','${item.name}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}','${item.ordenation}');`)
+                allQuerys.push(`INSERT INTO exactmeasure(uuid,name,createby,createdate,modifyby,modifydate,ordenation)VALUES('${item.uuid}','${item.name}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}','${item.ordenation}');`)
             });
-            var feedstockQuery = [];
+
             feedstock.rows.forEach(item => {
-                feedstockQuery.push(`INSERT INTO feedstock(uuid,name,measurement,quantity,price,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.measurement}','${item.quantity}','${item.price}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
+                allQuerys.push(`INSERT INTO feedstock(uuid,name,measurement,quantity,price,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.measurement}','${item.quantity}','${item.price}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
             });
-            var feedstockusedQuery = [];
+
             feedstockused.rows.forEach(item => {
-                feedstockusedQuery.push(`INSERT INTO feedstockused(uuid,feedstockid,quantity,productionid)VALUES('${item.uuid}','${item.feedstockid}','${item.quantity}','${item.productionid}');`)
+                allQuerys.push(`INSERT INTO feedstockused(uuid,feedstockid,quantity,productionid)VALUES('${item.uuid}','${item.feedstockid}','${item.quantity}','${item.productionid}');`)
             });
-            var productionQuery = [];
+
             production.rows.forEach(item => {
-                productionQuery.push(`INSERT INTO production(uuid,name,price,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.price}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
+                allQuerys.push(`INSERT INTO production(uuid,name,price,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.price}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
             });
-            var simplemeasureQuery = [];
+
             simplemeasure.rows.forEach(item => {
-                simplemeasureQuery.push(`INSERT INTO simplemeasure(uuid,name,typemeasure,quantity,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.typemeasure}','${item.quantity}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
+                allQuerys.push(`INSERT INTO simplemeasure(uuid,name,typemeasure,quantity,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.typemeasure}','${item.quantity}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
             });
-            var usersQuery = [];
+
             users.rows.forEach(item => {
-                usersQuery.push(`INSERT INTO users(uuid,nickname,name,pass)VALUES('${item.uuid}','${item.nickname}','${item.name}','${item.pass}');`)
+                allQuerys.push(`INSERT INTO users(uuid,nickname,name,pass)VALUES('${item.uuid}','${item.nickname}','${item.name}','${item.pass}');`)
             });
-            var wpoQuery = [];
+
             wpo.rows.forEach(item => {
-                wpoQuery.push(`INSERT INTO wpo(uuid,name,quantity,price,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.quantity}','${item.price}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
+                allQuerys.push(`INSERT INTO wpo(uuid,name,quantity,price,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.quantity}','${item.price}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
             });
-            var wpousedQuery = [];
+
             wpoused.rows.forEach(item => {
-                wpousedQuery.push(`INSERT INTO wpoused(uuid,wpoid,quantity,productionid)VALUES('${item.uuid}','${item.wpoid}','${item.quantity}','${item.productionid}');`)
+                allQuerys.push(`INSERT INTO wpoused(uuid,wpoid,quantity,productionid)VALUES('${item.uuid}','${item.wpoid}','${item.quantity}','${item.productionid}');`)
             });
-            const response = [
-                {
-                    date: Date.now(),
-                    querys: [
-                        exactmeasureQuery,
-                        feedstockQuery,
-                        feedstockusedQuery,
-                        productionQuery,
-                        simplemeasureQuery,
-                        usersQuery,
-                        wpoQuery,
-                        wpousedQuery
-                    ]
-                }
-            ]
+            const response =
+            {
+                date: Date.now(),
+                querys: allQuerys,
+                rows: { exactmeasure: exactmeasure.rows, feedstock: feedstock.rows, feedstockused: feedstockused.rows, production: production.rows, simplemeasure: simplemeasure.rows, users: users.rows, wpo: wpo.rows, wpoused: wpoused.rows }
+            }
+
             return res.status(200).send(response);
         }
     } catch (error) {
         return res.status(500).send({ 'Error': 500, 'message': error.error });
     }
 }
+
+exports.postBackup = async (req, res, next) => {
+    try {
+        const vToken = verifyJWT(req.headers.authorization)
+        if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
+        else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
+        else if (vToken.status === 200) {
+            const dataReq = req.body;
+
+            setTimeout(async () => {
+
+
+
+                if (dataReq.table === 'exactmeasure') {
+                    var item = dataReq.reg
+
+                    const verify = await db.query(`SELECT * FROM exactmeasure WHERE uuid='${item.uuid}' OR name='${item.name}'`)
+                    if (verify.rowCount === 0) {
+                        await db.query(`INSERT INTO exactmeasure(uuid,name,createby,createdate,modifyby,modifydate,ordenation)VALUES('${item.uuid}','${item.name}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}','${item.ordenation}');`)
+                        return res.status(201).send({ "uuid": item.uuid, "status": "Ok", "code": "0" });
+                    } else {
+                        return res.status(200).send({ "uuid": item.uuid, "status": "this item already exists", "code": "1" });
+                    }
+                } else if (dataReq.table === 'feedstock') {
+                    var item = dataReq.reg
+
+                    const verify = await db.query(`SELECT * FROM feedstock WHERE uuid='${item.uuid}' OR name='${item.name}'`)
+                    if (verify.rowCount === 0) {
+                        await db.query(`INSERT INTO feedstock(uuid,name,measurement,quantity,price,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.measurement}','${item.quantity}','${item.price}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
+                        return res.status(201).send({ "uuid": item.uuid, "status": "Ok", "code": "0" });
+                    } else {
+                        return res.status(200).send({ "uuid": item.uuid, "status": "this item already exists", "code": "1" });
+                    }
+                } else if (dataReq.table === 'feedstockused') {
+                    var item = dataReq.reg
+
+                    const verify = await db.query(`SELECT * FROM feedstockused WHERE uuid='${item.uuid}' OR feedstockid='${item.feedstockid}' AND productionid='${item.productionid}'`)
+                    if (verify.rowCount === 0) {
+                        await db.query(`INSERT INTO feedstockused(uuid,feedstockid,quantity,productionid)VALUES('${item.uuid}','${item.feedstockid}','${item.quantity}','${item.productionid}');`)
+                        return res.status(201).send({ "uuid": item.uuid, "status": "Ok", "code": "0" });
+                    } else {
+                        return res.status(200).send({ "uuid": item.uuid, "status": "this item already exists", "code": "1" });
+                    }
+
+                } else if (dataReq.table === 'production') {
+                    var item = dataReq.reg
+
+                    const verify = await db.query(`SELECT * FROM production WHERE uuid='${item.uuid}' OR name='${item.name}'`)
+                    if (verify.rowCount === 0) {
+                        await db.query(`INSERT INTO production(uuid,name,price,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.price}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
+                        return res.status(201).send({ "uuid": item.uuid, "status": "Ok", "code": "0" });
+                    } else {
+                        return res.status(200).send({ "uuid": item.uuid, "status": "this item already exists", "code": "1" });
+                    }
+                } else if (dataReq.table === 'simplemeasure') {
+                    var item = dataReq.reg
+
+                    const verify = await db.query(`SELECT * FROM simplemeasure WHERE uuid='${item.uuid}' OR name='${item.name}'`)
+                    if (verify.rowCount === 0) {
+                        await db.query(`INSERT INTO simplemeasure(uuid,name,typemeasure,quantity,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.typemeasure}','${item.quantity}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
+                        return res.status(201).send({ "uuid": item.uuid, "status": "Ok", "code": "0" });
+                    } else {
+                        return res.status(200).send({ "uuid": item.uuid, "status": "this item already exists", "code": "1" });
+                    }
+                } else if (dataReq.table === 'users') {
+                    var item = dataReq.reg
+                    const verify = await db.query(`SELECT * FROM users WHERE uuid='${item.uuid}' OR nickname='${item.nickname}'`)
+                    if (verify.rowCount === 0) {
+                        await db.query(`INSERT INTO users(uuid,nickname,name,pass)VALUES('${item.uuid}','${item.nickname}','${item.name}','${item.pass}');`)
+                        return res.status(201).send({ "uuid": item.uuid, "status": "Ok", "code": "0" });
+                    } else {
+                        return res.status(200).send({ "uuid": item.uuid, "status": "this item already exists", "code": "1" });
+                    }
+                } else if (dataReq.table === 'wpo') {
+                    var item = dataReq.reg
+                    const verify = await db.query(`SELECT * FROM wpo WHERE uuid='${item.uuid}' OR name='${item.name}'`)
+                    if (verify.rowCount === 0) {
+                        await db.query(`INSERT INTO wpo(uuid,name,quantity,price,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.quantity}','${item.price}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
+                        return res.status(201).send({ "uuid": item.uuid, "status": "Ok", "code": "0" });
+                    } else {
+                        return res.status(200).send({ "uuid": item.uuid, "status": "this item already exists", "code": "1" });
+                    }
+                } else if (dataReq.table === 'wpoused') {
+                    var item = dataReq.reg
+
+                    const verify = await db.query(`SELECT * FROM wpoused WHERE uuid='${item.uuid}' OR wpoid='${item.wpoid}' AND productionid='${item.productionid}'`)
+                    if (verify.rowCount === 0) {
+                        await db.query(`INSERT INTO wpoused(uuid,wpoid,quantity,productionid)VALUES('${item.uuid}','${item.wpoid}','${item.quantity}','${item.productionid}');`)
+                        return res.status(201).send({ "uuid": item.uuid, "status": "Ok", "code": "0" });
+                    } else {
+                        return res.status(200).send({ "uuid": item.uuid, "status": "this item already exists", "code": "1" });
+                    }
+                } else { return res.status(204).send('ERRO') }
+
+            }, 3000);
+        }
+    } catch (error) {
+        return res.status(500).send({ 'Error': error.code, 'message': error.error });
+    }
+}
+

@@ -17,8 +17,7 @@ CREATE TABLE IF NOT EXISTS simplemeasure (
     createby VARCHAR NOT NULL,
     createdate VARCHAR NOT NULL,
     modifyby VARCHAR NOT NULL,
-    modifydate VARCHAR NOT NULL,
-    ordenation VARCHAR NOT NULL UNIQUE,
+    modifydate VARCHAR NOT NULL,    
     PRIMARY KEY (uuid)
 );
 
