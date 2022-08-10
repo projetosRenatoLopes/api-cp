@@ -6,8 +6,6 @@ exports.getSession = async (req, res, next) => {
     try {
         const user = req.body.user
         const pass = req.body.password
-        console.log(req.body)
-        console.log({ user, pass })
         const result = await db.query("SELECT name, uuid FROM users WHERE nickname = '" + user + "' AND pass = '" + pass + "';");
 
         const queryRes = result.rows;
@@ -17,7 +15,6 @@ exports.getSession = async (req, res, next) => {
             const name = queryRes[0].name;
             const id = queryRes[0].uuid;
             const secretKey = process.env.SECRET_KEY
-            console.log(secretKey)
             var token = jwt.sign({ id }, `${secretKey}`, {
                 expiresIn: 604800 // 7 dias
             });
@@ -45,7 +42,6 @@ exports.validToken = async (req, res, next) => {
             if (user.rowCount === 0) {
                 return res.status(401).send({ "status": 401, "message": "Usuário inválido." });
             } else {
-                console.log(user.rows[0])
                 // return res.status(200).send({ "status": 200, "user": "Produto inserido com sucesso" });
                 return res.status(200).send({ "status": 200, "id": user.rows[0].uuid, "user": user.rows[0].name, });
 
@@ -59,19 +55,17 @@ exports.validToken = async (req, res, next) => {
 
 exports.updateUser = async (req, res, next) => {
 
-    try {        
+    try {
         const vToken = verifyJWT(req.headers.authorization)
         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
         else if (vToken.status === 200) {
-            const user = await db.query("SELECT name from users WHERE uuid = '" + vToken.id + "';")            
+            const user = await db.query("SELECT name from users WHERE uuid = '" + vToken.id + "';")
             if (user.rowCount === 0) {
-                console.log('Usuário não encontrado')
                 return res.status(401).send({ "status": 404, "message": "Usuário inválido." });
             } else {
                 const result = await db.query("SELECT * from users WHERE uuid = '" + vToken.id + "' and pass = '" + [req.body[0].pass] + "';");
-                if (result.rowCount === 0) {         
-                    console.log('Senha')           
+                if (result.rowCount === 0) {
                     return res.status(401).send({ "status": 401, "message": "Senha ou ID incorretos." });
                 } else {
                     await db.query("UPDATE users SET name = '" + [req.body[0].name] + "', pass = '" + [req.body[0].newpass] + "' WHERE uuid = '" + vToken.id + "';");
@@ -81,7 +75,6 @@ exports.updateUser = async (req, res, next) => {
         }
 
     } catch (error) {
-        console.log(error)
         return res.status(500).send({ 'Error': error.code, 'message': error.error });
     }
 

@@ -43,8 +43,7 @@ exports.postWPO = async (req, res, next) => {
 }
 
 exports.updateWPO = async (req, res, next) => {
-    try {
-        console.log(req.body)
+    try {        
         const vToken = verifyJWT(req.headers.authorization)
         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }

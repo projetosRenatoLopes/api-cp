@@ -58,14 +58,12 @@ exports.getDashboard = async (req, res, next) => {
                         cost += wpou.price
                         wpoUsed.push(wpou)
                     }
-                })               
+                })
                 const price = prod.price * 1
                 costArr.push({ "uuid": prod.uuid, "name": prod.name, "value": cost.toFixed(2), typevalue: "R$" })
                 priceArr.push({ "uuid": prod.uuid, "name": prod.name, "value": price, typevalue: "R$" })
                 const lucro = (prod.price - cost);
-                console.log(lucro)
                 const margem = (lucro * 100) / cost;
-                console.log(margem)
                 if (margem < 100) {
                     margemArr.push({ "uuid": prod.uuid, "name": prod.name, "value": margem.toFixed(2), typevalue: "%" })
                 }

@@ -63,8 +63,7 @@ exports.updateWPOUsed = async (req, res, next) => {
             if (findId.rowCount === 0) {
                 return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
             } else {
-                await db.query("UPDATE wpoused SET quantity='" + [req.body.quantity] + "' WHERE uuid='" + [req.body.uuid] + "';")
-                console.log(req.body.productionid)
+                await db.query("UPDATE wpoused SET quantity='" + [req.body.quantity] + "' WHERE uuid='" + [req.body.uuid] + "';")                
                 db.query("UPDATE production SET modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "' WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.productionid] + "' AS VARCHAR);")
                 return res.status(201).send({ "status": 201, "message": "Dados atualizados com sucesso" });
             }
