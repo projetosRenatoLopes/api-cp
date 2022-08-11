@@ -43,29 +43,27 @@ exports.getDashboard = async (req, res, next) => {
             var costArr = [];
             var priceArr = [];
             var margemArr = [];
-            productionsRes.rows.forEach(prod => {
-                var feedstockUsed = [];
-                var cost = 0;
+            productionsRes.rows.forEach(prod => {                
+                var cost = 0.0;
                 feedstockUsedRes.forEach(fdUs => {
                     if (fdUs.productionid === prod.uuid) {
                         cost += fdUs.price
-                        feedstockUsed.push(fdUs)
                     }
                 })
-                var wpoUsed = []
                 wpoUsedRes.forEach(wpou => {
                     if (wpou.productionid === prod.uuid) {
                         cost += wpou.price
-                        wpoUsed.push(wpou)
                     }
+                    console.log(cost)
                 })
                 const price = prod.price * 1
-                costArr.push({ "uuid": prod.uuid, "name": prod.name, "value": cost.toFixed(2), typevalue: "R$" })
+                const costs = cost
+                costArr.push({ "uuid": prod.uuid, "name": prod.name, "value": costs, typevalue: "R$" })
                 priceArr.push({ "uuid": prod.uuid, "name": prod.name, "value": price, typevalue: "R$" })
                 const lucro = (prod.price - cost);
                 const margem = (lucro * 100) / cost;
                 if (margem < 100) {
-                    margemArr.push({ "uuid": prod.uuid, "name": prod.name, "value": margem.toFixed(2), typevalue: "%" })
+                    margemArr.push({ "uuid": prod.uuid, "name": prod.name, "value": margem, typevalue: "%" })
                 }
             })
 
@@ -79,21 +77,29 @@ exports.getDashboard = async (req, res, next) => {
                 if (a.value < b.value) return -1;
                 return 0;
             }
-            const cost = costArr.sort(compare)
+            function compareDesc(a, b) {
+                if (a.value < b.value) return 1;
+                if (a.value > b.value) return -1;
+                return 0;
+            }
             const price = priceArr.sort(compare)
+            const cost = costArr.sort(compareDesc)
             const margem = margemArr.sort(compareAsc)
             const response = [
                 {
                     name: "Top 5 produções mais caras:",
-                    data: price
+                    data: price,
+                    typevalue: "R$"
                 },
                 {
                     name: "Top 5 custos mais caros:",
                     data: cost,
+                    typevalue: "R$"
                 },
                 {
                     name: "Produções com margem abaixo de 100%:",
-                    data: margem
+                    data: margem,
+                    typevalue: "%"
                 },
             ]
 

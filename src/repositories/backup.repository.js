@@ -11,14 +11,16 @@ exports.getBackup = async (req, res, next) => {
         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
         else if (vToken.status === 200) {
-            const exactmeasure = await db.query("SELECT * FROM exactmeasure;")
-            const feedstock = await db.query("SELECT * FROM feedstock;")
-            const feedstockused = await db.query("SELECT * FROM feedstockused;");
-            const production = await db.query("SELECT * FROM production;");
-            const simplemeasure = await db.query("SELECT * FROM simplemeasure;");
-            const users = await db.query("SELECT * FROM users;");
-            const wpo = await db.query("SELECT * FROM wpo;")
-            const wpoused = await db.query("SELECT * FROM wpoused;");
+            const exactmeasure = await db.query("SELECT * FROM exactmeasure ORDER BY name;")
+            const feedstock = await db.query("SELECT * FROM feedstock ORDER BY name;")
+            //const feedstockused = await db.query("SELECT * FROM feedstockused;");
+            const feedstockused = await db.query("SELECT U.uuid, U.feedstockid, F.name AS feedstock, S.name AS measurement,  U.quantity, U.productionid, P.name as production FROM feedstockused U LEFT JOIN feedstock F ON CAST(U.feedstockid AS VARCHAR)=CAST(F.uuid AS VARCHAR) LEFT JOIN simplemeasure S ON CAST(F.measurement AS VARCHAR)=CAST(S.uuid AS VARCHAR) LEFT JOIN production P ON CAST(U.productionid AS VARCHAR)=CAST(P.uuid AS VARCHAR) ORDER BY P.name, F.name ASC");
+            const production = await db.query("SELECT * FROM production ORDER BY name;");
+            const simplemeasure = await db.query("SELECT * FROM simplemeasure ORDER BY name;");
+            const users = await db.query("SELECT * FROM users ORDER BY name;");
+            const wpo = await db.query("SELECT * FROM wpo ORDER BY name;")
+            //const wpoused = await db.query("SELECT * FROM wpoused;");
+            const wpoused = await db.query("SELECT U.uuid, U.wpoid, F.name AS wpo, U.quantity, U.productionid, P.name as production FROM wpoused U LEFT JOIN wpo F ON CAST(U.wpoid AS VARCHAR)=CAST(F.uuid AS VARCHAR) LEFT JOIN production P ON CAST(U.productionid AS VARCHAR)=CAST(P.uuid AS VARCHAR) ORDER BY P.name, F.name ASC");
 
             var allQuerys = [];
             exactmeasure.rows.forEach(item => {
@@ -55,7 +57,6 @@ exports.getBackup = async (req, res, next) => {
             const response =
             {
                 date: Date.now(),
-                querys: allQuerys,
                 rows: { exactmeasure: exactmeasure.rows, feedstock: feedstock.rows, feedstockused: feedstockused.rows, production: production.rows, simplemeasure: simplemeasure.rows, users: users.rows, wpo: wpo.rows, wpoused: wpoused.rows }
             }
 
