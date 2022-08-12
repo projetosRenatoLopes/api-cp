@@ -6,7 +6,7 @@ exports.getSession = async (req, res, next) => {
     try {
         const user = req.body.user
         const pass = req.body.password
-        const result = await db.query("SELECT name, uuid FROM users WHERE nickname = '" + user + "' AND pass = '" + pass + "';");
+        const result = await db.query(`SELECT name, uuid FROM users WHERE nickname = '${user}' AND pass = '${pass}';`);
 
         const queryRes = result.rows;
         if (queryRes.length === 0) {
