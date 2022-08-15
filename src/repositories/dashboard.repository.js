@@ -78,7 +78,6 @@ exports.getDashboard = async (req, res, next) => {
                     if (wpou.productionid === prod.uuid) {
                         cost += wpou.price
                     }
-                    console.log(cost)
                 })
                 const price = prod.price * 1
                 const costs = cost
@@ -134,7 +133,7 @@ exports.getDashboard = async (req, res, next) => {
                     typevalue: "Quantidade"
                 },
                 {
-                    name: "Outros custos mais utilizadas:",
+                    name: "Outros custos mais utilizados:",
                     data: wpoUsedQtd,
                     typevalue: "Quantidade"
                 },
