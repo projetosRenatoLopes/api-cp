@@ -17,6 +17,30 @@ exports.getDashboard = async (req, res, next) => {
             const wpo = await db.query("SELECT F.uuid, F.name, F.quantity, F.price, U.name as createby, F.createdate, R.name as modifyby, F.modifydate FROM wpo F LEFT JOIN users U ON F.createby=CAST(U.uuid AS VARCHAR) LEFT JOIN users R ON F.modifyby=CAST(R.uuid AS VARCHAR) ORDER BY F.name;")
             const feedstock = await db.query("SELECT F.uuid, F.name, F.measurement as measurementid, S.name as measurement, F.quantity, F.price, U.name as createby, F.createdate, R.name as modifyby, F.modifydate FROM feedstock F LEFT JOIN users U ON F.createby=CAST(U.uuid AS VARCHAR) LEFT JOIN users R ON F.modifyby=CAST(R.uuid AS VARCHAR) LEFT JOIN simplemeasure S ON CAST(F.measurement AS VARCHAR)=CAST(S.uuid AS VARCHAR) ORDER BY F.name;")
             var feedstockUsedRes = [];
+
+            var fdsUQtd = [];
+            feedstock.rows.forEach(fs => {
+                var qtdU = 0;
+                feedstockUsed.rows.forEach(fsu => {
+                    if (fs.uuid === fsu.feedstockid) {
+                        qtdU += 1;
+                    }
+                })
+                fdsUQtd.push({ "uuid": fs.uuid, "name": fs.name, "value": qtdU })
+            });
+
+            var wpoUQtd = [];
+            wpo.rows.forEach(wpo => {
+                var qtdU = 0;
+                wpoUsed.rows.forEach(wpou => {
+                    if (wpo.uuid === wpou.wpoid) {
+                        qtdU += 1;
+                    }
+                })
+                wpoUQtd.push({ "uuid": wpo.uuid, "name": wpo.name, "value": qtdU })
+            });
+
+
             feedstockUsed.rows.forEach(fsu => {
                 var price;
                 feedstock.rows.forEach(fs => {
@@ -43,7 +67,7 @@ exports.getDashboard = async (req, res, next) => {
             var costArr = [];
             var priceArr = [];
             var margemArr = [];
-            productionsRes.rows.forEach(prod => {                
+            productionsRes.rows.forEach(prod => {
                 var cost = 0.0;
                 feedstockUsedRes.forEach(fdUs => {
                     if (fdUs.productionid === prod.uuid) {
@@ -85,6 +109,9 @@ exports.getDashboard = async (req, res, next) => {
             const price = priceArr.sort(compare)
             const cost = costArr.sort(compareDesc)
             const margem = margemArr.sort(compareAsc)
+            const feedstockUsedQtd = fdsUQtd.sort(compareDesc)
+            const wpoUsedQtd = wpoUQtd.sort(compareDesc)
+
             const response = [
                 {
                     name: "Top 5 produções mais caras:",
@@ -100,6 +127,16 @@ exports.getDashboard = async (req, res, next) => {
                     name: "Produções com margem abaixo de 100%:",
                     data: margem,
                     typevalue: "%"
+                },
+                {
+                    name: "Matérias-primas mais utilizadas:",
+                    data: feedstockUsedQtd,
+                    typevalue: "Quantidade"
+                },
+                {
+                    name: "Outros custos mais utilizadas:",
+                    data: wpoUsedQtd,
+                    typevalue: "Quantidade"
                 },
             ]
 
