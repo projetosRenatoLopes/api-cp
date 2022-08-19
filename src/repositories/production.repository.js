@@ -56,8 +56,15 @@ exports.getProduction = async (req, res, next) => {
                         wpoUsed.push(wpou)
                     }
                 })
+                const profit = prod.price - cost;
+                var percent = 0;
+                if (cost > 0) {
+                    percent = (profit * 100) / cost
+                } else {
+                    percent = 100;
+                }
 
-                productions.push({ "uuid": prod.uuid, "name": prod.name, "price": prod.price, "cost": cost, "feedstockused": feedstockUsed, "wpoused": wpoUsed, "createby": prod.createby, "createdate": prod.createdate, "modifyby": prod.modifyby, "modifydate": prod.modifydate })
+                productions.push({ "uuid": prod.uuid, "name": prod.name, "price": prod.price, "cost": cost, "profit": profit, "percent": percent, "feedstockused": feedstockUsed, "wpoused": wpoUsed, "createby": prod.createby, "createdate": prod.createdate, "modifyby": prod.modifyby, "modifydate": prod.modifydate })
             })
 
             const response = {
