@@ -84,8 +84,13 @@ exports.postProduction = async (req, res, next) => {
         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
         else if (vToken.status === 200) {
+            const resultDesc = await db.query("SELECT * FROM production WHERE name='" + [req.body.name] + "'")
+            if (resultDesc.rowCount > 0) {
+                return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
+            } else {
             const result = await db.query("INSERT INTO production (name, price, createby, createdate, modifyby, modifydate) VALUES ('" + [req.body.name] + "','" + [req.body.price] + "','" + vToken.id + "','" + Date.now() + "','" + vToken.id + "','" + Date.now() + "');");
             return res.status(201).send({ "status": 201, "message": "Dados inseridos com sucesso" });
+            }
         }
 
     } catch (error) {
@@ -104,8 +109,13 @@ exports.updateProduction = async (req, res, next) => {
             if (findId.rowCount === 0) {
                 return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
             } else {
-                const result = await db.query("UPDATE production SET name='" + [req.body.name] + "', price='" + [req.body.price] + "', modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "' WHERE uuid='" + [req.body.uuid] + "';")
-                return res.status(201).send({ "status": 201, "message": "Dados atualizados com sucesso" });
+                const resultDesc = await db.query("SELECT * FROM production WHERE name='" + [req.body.name] + "' AND uuid!='" + [req.body.uuid] + "'")
+                if (resultDesc.rowCount > 0) {
+                    return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
+                } else {
+                    const result = await db.query("UPDATE production SET name='" + [req.body.name] + "', price='" + [req.body.price] + "', modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "' WHERE uuid='" + [req.body.uuid] + "';")
+                    return res.status(201).send({ "status": 201, "message": "Dados atualizados com sucesso" });
+                }
             }
         }
     } catch (error) {
