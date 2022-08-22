@@ -13,51 +13,18 @@ exports.getBackup = async (req, res, next) => {
         else if (vToken.status === 200) {
             const exactmeasure = await db.query("SELECT * FROM exactmeasure ORDER BY name;")
             const feedstock = await db.query("SELECT * FROM feedstock ORDER BY name;")
-            //const feedstockused = await db.query("SELECT * FROM feedstockused;");
             const feedstockused = await db.query("SELECT U.uuid, U.feedstockid, F.name AS feedstock, S.name AS measurement,  U.quantity, U.productionid, P.name as production FROM feedstockused U LEFT JOIN feedstock F ON CAST(U.feedstockid AS VARCHAR)=CAST(F.uuid AS VARCHAR) LEFT JOIN simplemeasure S ON CAST(F.measurement AS VARCHAR)=CAST(S.uuid AS VARCHAR) LEFT JOIN production P ON CAST(U.productionid AS VARCHAR)=CAST(P.uuid AS VARCHAR) ORDER BY P.name, F.name ASC");
             const production = await db.query("SELECT * FROM production ORDER BY name;");
             const simplemeasure = await db.query("SELECT * FROM simplemeasure ORDER BY name;");
             const users = await db.query("SELECT * FROM users ORDER BY name;");
             const wpo = await db.query("SELECT * FROM wpo ORDER BY name;")
-            //const wpoused = await db.query("SELECT * FROM wpoused;");
+            const category = await db.query("SELECT * FROM category;");
             const wpoused = await db.query("SELECT U.uuid, U.wpoid, F.name AS wpo, U.quantity, U.productionid, P.name as production FROM wpoused U LEFT JOIN wpo F ON CAST(U.wpoid AS VARCHAR)=CAST(F.uuid AS VARCHAR) LEFT JOIN production P ON CAST(U.productionid AS VARCHAR)=CAST(P.uuid AS VARCHAR) ORDER BY P.name, F.name ASC");
 
-            var allQuerys = [];
-            exactmeasure.rows.forEach(item => {
-                allQuerys.push(`INSERT INTO exactmeasure(uuid,name,createby,createdate,modifyby,modifydate,ordenation)VALUES('${item.uuid}','${item.name}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}','${item.ordenation}');`)
-            });
-
-            feedstock.rows.forEach(item => {
-                allQuerys.push(`INSERT INTO feedstock(uuid,name,measurement,quantity,price,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.measurement}','${item.quantity}','${item.price}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
-            });
-
-            feedstockused.rows.forEach(item => {
-                allQuerys.push(`INSERT INTO feedstockused(uuid,feedstockid,quantity,productionid)VALUES('${item.uuid}','${item.feedstockid}','${item.quantity}','${item.productionid}');`)
-            });
-
-            production.rows.forEach(item => {
-                allQuerys.push(`INSERT INTO production(uuid,name,price,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.price}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
-            });
-
-            simplemeasure.rows.forEach(item => {
-                allQuerys.push(`INSERT INTO simplemeasure(uuid,name,typemeasure,quantity,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.typemeasure}','${item.quantity}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
-            });
-
-            users.rows.forEach(item => {
-                allQuerys.push(`INSERT INTO users(uuid,nickname,name,pass)VALUES('${item.uuid}','${item.nickname}','${item.name}','${item.pass}');`)
-            });
-
-            wpo.rows.forEach(item => {
-                allQuerys.push(`INSERT INTO wpo(uuid,name,quantity,price,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.quantity}','${item.price}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
-            });
-
-            wpoused.rows.forEach(item => {
-                allQuerys.push(`INSERT INTO wpoused(uuid,wpoid,quantity,productionid)VALUES('${item.uuid}','${item.wpoid}','${item.quantity}','${item.productionid}');`)
-            });
             const response =
             {
                 date: Date.now(),
-                rows: { exactmeasure: exactmeasure.rows, feedstock: feedstock.rows, feedstockused: feedstockused.rows, production: production.rows, simplemeasure: simplemeasure.rows, users: users.rows, wpo: wpo.rows, wpoused: wpoused.rows }
+                rows: { exactmeasure: exactmeasure.rows, feedstock: feedstock.rows, feedstockused: feedstockused.rows, production: production.rows, category: category.rows, simplemeasure: simplemeasure.rows, users: users.rows, wpo: wpo.rows, wpoused: wpoused.rows }
             }
 
             return res.status(200).send(response);
@@ -154,6 +121,16 @@ exports.postBackup = async (req, res, next) => {
                     const verify = await db.query(`SELECT * FROM wpoused WHERE uuid='${item.uuid}' OR wpoid='${item.wpoid}' AND productionid='${item.productionid}'`)
                     if (verify.rowCount === 0) {
                         await db.query(`INSERT INTO wpoused(uuid,wpoid,quantity,productionid)VALUES('${item.uuid}','${item.wpoid}','${item.quantity}','${item.productionid}');`)
+                        return res.status(201).send({ "uuid": item.uuid, "status": "Cadastrado", "code": "0" });
+                    } else {
+                        return res.status(200).send({ "uuid": item.uuid, "status": "Item já cadastrado", "code": "1" });
+                    }
+                } else if (dataReq.table === 'category') {
+                    var item = dataReq.reg
+
+                    const verify = await db.query(`SELECT * FROM category WHERE uuid='${item.uuid}' OR name='${item.name}'`)
+                    if (verify.rowCount === 0) {
+                        await db.query(`INSERT INTO category(uuid,name,,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
                         return res.status(201).send({ "uuid": item.uuid, "status": "Cadastrado", "code": "0" });
                     } else {
                         return res.status(200).send({ "uuid": item.uuid, "status": "Item já cadastrado", "code": "1" });
