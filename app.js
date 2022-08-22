@@ -45,6 +45,7 @@ const routeWPOUsed = require('./routes/wpoUsed');
 const routeWPOU = require('./routes/wpo');
 const routeDash = require('./routes/dashboard');
 const routeBackup = require('./routes/backup');
+const routeCategory = require('./routes/category');
 
 app.use('/simplemeasure', routeSimpleMeasure);
 app.use('/exactmeasure', routeExactMeasure);
@@ -56,6 +57,7 @@ app.use('/wpoused', routeWPOUsed);
 app.use('/wpo', routeWPOU);
 app.use('/dashboard', routeDash);
 app.use('/backup', routeBackup);
+app.use('/category', routeCategory);
 
 app.use('/api', (req, res, next) => {
     res.status(200).send('API Custo de Produção');

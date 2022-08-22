@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS production (
     uuid uuid DEFAULT uuid_generate_v4(),
     name VARCHAR NOT NULL UNIQUE,
     price VARCHAR NOT NULL,
+    categoryid VARCHAR NOT NULL,
     createby VARCHAR NOT NULL,
     createdate VARCHAR NOT NULL,
     modifyby VARCHAR NOT NULL,
@@ -84,6 +85,20 @@ CREATE TABLE IF NOT EXISTS users (
     PRIMARY KEY (uuid)
 );
 
+CREATE TABLE IF NOT EXISTS category (
+    uuid uuid DEFAULT uuid_generate_v4(),
+    name VARCHAR NOT NULL UNIQUE,    
+    createby VARCHAR NOT NULL,
+    createdate VARCHAR NOT NULL,
+    modifyby VARCHAR NOT NULL,
+    modifydate VARCHAR NOT NULL,    
+    PRIMARY KEY (uuid)
+);
+
+
+ALTER TABLE products
+ADD categoryid VARCHAR NOT NULL
+DEFAULT ('')
 
 
 INSERT INTO exactmeasure (name, createby, createdate, modifyby, modifydate, ordenation) values ('ml','system','1658766035713','system','1658766035713','0');
