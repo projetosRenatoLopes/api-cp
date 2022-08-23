@@ -6,25 +6,28 @@ exports.getSession = async (req, res, next) => {
     try {
         const user = req.body.user
         const pass = req.body.password
-        const result = await db.query(`SELECT name, uuid FROM users WHERE nickname = '${user}' AND pass = '${pass}';`);
-
-        const queryRes = result.rows;
-        if (queryRes.length === 0) {
-            return res.status(204).send();
+        if (user === "" || pass === "") {
+            return res.status(401).send({ "status": 401, 'message': "Usuário e senha não podem ser vazios." });
         } else {
-            const name = queryRes[0].name;
-            const id = queryRes[0].uuid;
-            const secretKey = process.env.SECRET_KEY
-            var token = jwt.sign({ id }, `${secretKey}`, {
-                expiresIn: 604800 // 7 dias
-            });
+            const result = await db.query(`SELECT name, uuid FROM users WHERE nickname = '${user}' AND pass = '${pass}';`);
+            const queryRes = result.rows;
+            if (queryRes.length === 0) {
+                return res.status(204).send();
+            } else {
+                const name = queryRes[0].name;
+                const id = queryRes[0].uuid;
+                const secretKey = process.env.SECRET_KEY
+                var token = jwt.sign({ id }, `${secretKey}`, {
+                    expiresIn: 604800 // 7 dias
+                });
 
-            const dataUser = {
-                "name": name,
-                "id": id,
-                "token": token
+                const dataUser = {
+                    "name": name,
+                    "id": id,
+                    "token": token
+                }
+                return res.status(200).send(dataUser);
             }
-            return res.status(200).send(dataUser);
         }
 
     } catch (error) {
