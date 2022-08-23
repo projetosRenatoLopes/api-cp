@@ -82,7 +82,7 @@ exports.postBackup = async (req, res, next) => {
 
                     const verify = await db.query(`SELECT * FROM production WHERE uuid='${item.uuid}' OR name='${item.name}'`)
                     if (verify.rowCount === 0) {
-                        await db.query(`INSERT INTO production(uuid,name,price,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.price}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
+                        await db.query(`INSERT INTO production(uuid,name,price,categoryid,createby,createdate,modifyby,modifydate)VALUES('${item.uuid}','${item.name}','${item.price}','${item.categoryid}','${item.createby}','${item.createdate}','${item.modifyby}','${item.modifydate}');`)
                         return res.status(201).send({ "uuid": item.uuid, "status": "Cadastrado", "code": "0" });
                     } else {
                         return res.status(200).send({ "uuid": item.uuid, "status": "Item já cadastrado", "code": "1" });
