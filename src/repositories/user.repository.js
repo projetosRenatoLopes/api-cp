@@ -72,7 +72,7 @@ exports.updateUser = async (req, res, next) => {
                     return res.status(401).send({ "status": 401, "message": "Senha ou ID incorretos." });
                 } else {
                     await db.query("UPDATE users SET name = '" + [req.body[0].name] + "', pass = '" + [req.body[0].newpass] + "' WHERE uuid = '" + vToken.id + "';");
-                    return res.status(200).send({ "status": 200, "message": "Usuário alterado com sucesso", "user": [req.body[0].name] });
+                    return res.status(200).send({ "status": 200, "message": "Usuário alterado com sucesso", "user": req.body[0].name });
                 }
             }
         }
