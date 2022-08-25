@@ -68,7 +68,7 @@ exports.getProduction = async (req, res, next) => {
 
             const response = {
                 length: productions.length,
-                productions: productions
+                production: productions
             }
             return res.status(200).send(response);
         }
