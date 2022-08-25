@@ -21,56 +21,56 @@ exports.getExactMeasure = async (req, res, next) => {
     }
 }
 
-exports.postExactMeasure = async (req, res, next) => {
-    try {
-        const vToken = verifyJWT(req.headers.authorization)
-        if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
-        else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
-        else if (vToken.status === 200) {
-            const result = await db.query("INSERT INTO exactmeasure (name, createby, createdate, modifyby, modifydate, ordenation) VALUES ('" + [req.body.name] + "','" + vToken.id + "','" + Date.now() + "','" + vToken.id + "','" + Date.now() + "','" + [req.body.ordenation] + "');");
-            return res.status(200).send({ "status": 200, "message": "Dados inseridos com sucesso" });
-        }
+// exports.postExactMeasure = async (req, res, next) => {
+//     try {
+//         const vToken = verifyJWT(req.headers.authorization)
+//         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
+//         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
+//         else if (vToken.status === 200) {
+//             const result = await db.query("INSERT INTO exactmeasure (name, createby, createdate, modifyby, modifydate, ordenation) VALUES ('" + [req.body.name] + "','" + vToken.id + "','" + Date.now() + "','" + vToken.id + "','" + Date.now() + "','" + [req.body.ordenation] + "');");
+//             return res.status(200).send({ "status": 200, "message": "Dados inseridos com sucesso" });
+//         }
 
-    } catch (error) {
-        return res.status(500).send({ 'Error': error.code, 'message': error.error });
-    }
+//     } catch (error) {
+//         return res.status(500).send({ 'Error': error.code, 'message': error.error });
+//     }
 
-}
+// }
 
-exports.updateExactMeasure = async (req, res, next) => {
-    try {
-        const vToken = verifyJWT(req.headers.authorization)
-        if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
-        else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
-        else if (vToken.status === 200) {
-            const findId = await db.query("SELECT name FROM exactmeasure WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
-            if (findId.rowCount === 0) {
-                return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
-            } else {
-                const result = await db.query("UPDATE exactmeasure SET name = '" + [req.body.name] + "', modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "', ordenation = '" + [req.body.ordenation] + "' WHERE uuid='" + [req.body.uuid] + "';")
-                return res.status(200).send({ "status": 200, "message": "Dados atualizados com sucesso" });
-            }
-        }
-    } catch (error) {
-        return res.status(500).send({ 'Error': error.code, 'message': error.error });
-    }
-}
+// exports.updateExactMeasure = async (req, res, next) => {
+//     try {
+//         const vToken = verifyJWT(req.headers.authorization)
+//         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
+//         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
+//         else if (vToken.status === 200) {
+//             const findId = await db.query("SELECT name FROM exactmeasure WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
+//             if (findId.rowCount === 0) {
+//                 return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
+//             } else {
+//                 const result = await db.query("UPDATE exactmeasure SET name = '" + [req.body.name] + "', modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "', ordenation = '" + [req.body.ordenation] + "' WHERE uuid='" + [req.body.uuid] + "';")
+//                 return res.status(200).send({ "status": 200, "message": "Dados atualizados com sucesso" });
+//             }
+//         }
+//     } catch (error) {
+//         return res.status(500).send({ 'Error': error.code, 'message': error.error });
+//     }
+// }
 
-exports.deleteExactMeasure = async (req, res, next) => {
-    try {
-        const vToken = verifyJWT(req.headers.authorization)
-        if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
-        else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
-        else if (vToken.status === 200) {
-            const findId = await db.query("SELECT name FROM exactmeasure WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
-            if (findId.rowCount === 0) {
-                return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
-            } else {
-                const result = await db.query("DELETE FROM exactmeasure WHERE uuid='" + [req.body.uuid] + "';")
-                return res.status(200).send({ "status": 200, "message": "Dados excluidos com sucesso" });
-            }
-        }
-    } catch (error) {
-        return res.status(500).send({ 'Error': error.code, 'message': error.error });
-    }
-}
+// exports.deleteExactMeasure = async (req, res, next) => {
+//     try {
+//         const vToken = verifyJWT(req.headers.authorization)
+//         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
+//         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
+//         else if (vToken.status === 200) {
+//             const findId = await db.query("SELECT name FROM exactmeasure WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
+//             if (findId.rowCount === 0) {
+//                 return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
+//             } else {
+//                 const result = await db.query("DELETE FROM exactmeasure WHERE uuid='" + [req.body.uuid] + "';")
+//                 return res.status(200).send({ "status": 200, "message": "Dados excluidos com sucesso" });
+//             }
+//         }
+//     } catch (error) {
+//         return res.status(500).send({ 'Error': error.code, 'message': error.error });
+//     }
+// }

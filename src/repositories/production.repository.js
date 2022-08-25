@@ -86,12 +86,17 @@ exports.postProduction = async (req, res, next) => {
             if (req.body.name === "" || req.body.price === "" || req.body.categoryid === "") {
                 return res.status(200).send({ "status": 200, "message": "Nome, Descrição e Categoria não podem ser vazio!" });
             } else {
-                const resultDesc = await db.query("SELECT * FROM production WHERE name='" + [req.body.name] + "'")
-                if (resultDesc.rowCount > 0) {
-                    return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
+                const categ = await db.query("SELECT * FROM category WHERE CAST(uuid as VARCHAR)='" + [req.body.categoryid] + "'")
+                if (categ.rowCount === 0) {
+                    return res.status(200).send({ "status": 200, "message": "Campo Categoria vazio ou inválido" });
                 } else {
-                    await db.query("INSERT INTO production (name, price, categoryid, createby, createdate, modifyby, modifydate) VALUES ('" + [req.body.name] + "','" + [req.body.price] + "','" + [req.body.categoryid] + "','" + vToken.id + "','" + Date.now() + "','" + vToken.id + "','" + Date.now() + "');");
-                    return res.status(201).send({ "status": 201, "message": "Dados inseridos com sucesso" });
+                    const resultDesc = await db.query("SELECT * FROM production WHERE name='" + [req.body.name] + "'")
+                    if (resultDesc.rowCount > 0) {
+                        return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
+                    } else {
+                        await db.query("INSERT INTO production (name, price, categoryid, createby, createdate, modifyby, modifydate) VALUES ('" + [req.body.name] + "','" + [req.body.price] + "','" + [req.body.categoryid] + "','" + vToken.id + "','" + Date.now() + "','" + vToken.id + "','" + Date.now() + "');");
+                        return res.status(201).send({ "status": 201, "message": "Dados inseridos com sucesso" });
+                    }
                 }
             }
         }
@@ -114,12 +119,17 @@ exports.updateProduction = async (req, res, next) => {
                 if (req.body.name === "" || req.body.price === "" || req.body.categoryid === "") {
                     return res.status(200).send({ "status": 200, "message": "Nome, Descrição e Categoria não podem ser vazio" });
                 } else {
-                    const resultDesc = await db.query("SELECT * FROM production WHERE name='" + [req.body.name] + "' AND uuid!='" + [req.body.uuid] + "'")
-                    if (resultDesc.rowCount > 0) {
-                        return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
+                    const categ = await db.query("SELECT * FROM category WHERE CAST(uuid as VARCHAR)='" + [req.body.categoryid] + "'")
+                    if (categ.rowCount === 0) {
+                        return res.status(200).send({ "status": 200, "message": "Campo Categoria vazio ou inválido" });
                     } else {
-                        await db.query("UPDATE production SET name='" + [req.body.name] + "', price='" + [req.body.price] + "', categoryid='" + [req.body.categoryid] + "', modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "' WHERE uuid='" + [req.body.uuid] + "';")
-                        return res.status(201).send({ "status": 201, "message": "Dados atualizados com sucesso" });
+                        const resultDesc = await db.query("SELECT * FROM production WHERE name='" + [req.body.name] + "' AND uuid!='" + [req.body.uuid] + "'")
+                        if (resultDesc.rowCount > 0) {
+                            return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
+                        } else {
+                            await db.query("UPDATE production SET name='" + [req.body.name] + "', price='" + [req.body.price] + "', categoryid='" + [req.body.categoryid] + "', modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "' WHERE uuid='" + [req.body.uuid] + "';")
+                            return res.status(201).send({ "status": 201, "message": "Dados atualizados com sucesso" });
+                        }
                     }
                 }
             }

@@ -4,11 +4,11 @@ const ExactMeasure = require('../src/repositories/exactMeasure.repository');
 
 router.get('/', ExactMeasure.getExactMeasure);
 
-router.post('/', ExactMeasure.postExactMeasure)
+// router.post('/', ExactMeasure.postExactMeasure)
 
-router.put('/', ExactMeasure.updateExactMeasure)
+// router.put('/', ExactMeasure.updateExactMeasure)
 
-router.delete('/', ExactMeasure.deleteExactMeasure)
+// router.delete('/', ExactMeasure.deleteExactMeasure)
 
 
 module.exports = router;
