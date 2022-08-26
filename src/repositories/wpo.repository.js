@@ -59,7 +59,7 @@ exports.updateWPO = async (req, res, next) => {
                 if (req.body.name === "" || req.body.quantity < 0 || req.body.quantity === "" || req.body.price < 0 || req.body.price === "") {
                     return res.status(200).send({ "status": 200, "message": "Nome, Quantidade e Preço não devem ser vazios. Quantidade e Preço não devem ser iguais ou menores que 0." });
                 } else {
-                    const resultDesc = await db.query("SELECT * FROM wpo WHERE name='" + [req.body.name] + "'")
+                    const resultDesc = await db.query("SELECT * FROM wpo WHERE name='" + [req.body.name] + "' AND uuid <> '" + [req.body.uuid] + "'")
                     if (resultDesc.rowCount > 0) {
                         return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
                     } else {

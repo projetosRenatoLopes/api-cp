@@ -43,7 +43,7 @@ exports.postCategory = async (req, res, next) => {
 }
 
 exports.updateCategory = async (req, res, next) => {
-    try {        
+    try {
         const vToken = verifyJWT(req.headers.authorization)
         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
@@ -52,8 +52,13 @@ exports.updateCategory = async (req, res, next) => {
             if (findId.rowCount === 0) {
                 return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
             } else {
-                await db.query("UPDATE category SET name='" + [req.body.name] + "', modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "' WHERE uuid='" + [req.body.uuid] + "';")
-                return res.status(201).send({ "status": 201, "message": "Dados atualizados com sucesso" });
+                const resultDesc = await db.query("SELECT * FROM category WHERE name='" + [req.body.name] + "' AND uuid != '" + [req.body.uuid] + "';")
+                if (resultDesc.rowCount > 0) {
+                    return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
+                } else {
+                    await db.query("UPDATE category SET name='" + [req.body.name] + "', modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "' WHERE uuid='" + [req.body.uuid] + "';")
+                    return res.status(201).send({ "status": 201, "message": "Dados atualizados com sucesso" });
+                }
             }
         }
     } catch (error) {

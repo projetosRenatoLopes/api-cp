@@ -61,7 +61,7 @@ exports.updateFeedstock = async (req, res, next) => {
             if (findId.rowCount === 0) {
                 return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
             } else {
-                const resultDesc = await db.query("SELECT * FROM feedstock WHERE name='" + [req.body.name] + "'")
+                const resultDesc = await db.query("SELECT * FROM feedstock WHERE name='" + [req.body.name] + "' AND uuid <> '" + [req.body.uuid] + "'")
                 if (resultDesc.rowCount > 0) {
                     return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
                 } else {
