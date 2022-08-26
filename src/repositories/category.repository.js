@@ -50,7 +50,7 @@ exports.updateCategory = async (req, res, next) => {
         else if (vToken.status === 200) {
             const findId = await db.query("SELECT name FROM category WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
             if (findId.rowCount === 0) {
-                return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
+                return res.status(200).send({ "status": 200, "message": "UUID não encontrado" });
             } else {
                 const resultDesc = await db.query("SELECT * FROM category WHERE name='" + [req.body.name] + "' AND uuid != '" + [req.body.uuid] + "';")
                 if (resultDesc.rowCount > 0) {
@@ -74,14 +74,14 @@ exports.deleteCategory = async (req, res, next) => {
         else if (vToken.status === 200) {
             const findId = await db.query("SELECT name FROM category WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
             if (findId.rowCount === 0) {
-                return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
+                return res.status(200).send({ "status": 200, "message": "UUID não encontrado" });
             } else {
                 const resultMeasureUsed = await db.query("SELECT * FROM production WHERE categoryid='" + [req.body.uuid] + "';")
                 if (resultMeasureUsed.rowCount !== 0) {
-                    return res.status(401).send({ "status": 401, "message": "Categoria sendo utilizada por Produção" });
+                    return res.status(200).send({ "status": 200, "message": "Categoria sendo utilizada em Produção" });
                 } else {
                     await db.query("DELETE FROM category WHERE uuid='" + [req.body.uuid] + "';")
-                    return res.status(200).send({ "status": 200, "message": "Dados excluidos com sucesso" });
+                    return res.status(201).send({ "status": 201, "message": "Dados excluidos com sucesso" });
                 }
             }
         }

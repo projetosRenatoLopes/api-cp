@@ -54,7 +54,7 @@ exports.updateWPO = async (req, res, next) => {
         else if (vToken.status === 200) {
             const findId = await db.query("SELECT name FROM wpo WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
             if (findId.rowCount === 0) {
-                return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
+                return res.status(200).send({ "status": 200, "message": "UUID não encontrado" });
             } else {
                 if (req.body.name === "" || req.body.quantity < 0 || req.body.quantity === "" || req.body.price < 0 || req.body.price === "") {
                     return res.status(200).send({ "status": 200, "message": "Nome, Quantidade e Preço não devem ser vazios. Quantidade e Preço não devem ser iguais ou menores que 0." });
@@ -82,14 +82,14 @@ exports.deleteWPO = async (req, res, next) => {
         else if (vToken.status === 200) {
             const findId = await db.query("SELECT name FROM wpo WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
             if (findId.rowCount === 0) {
-                return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
+                return res.status(200).send({ "status": 200, "message": "UUID não encontrado" });
             } else {
                 const resultMeasureUsed = await db.query("SELECT * FROM wpoused WHERE wpoid='" + [req.body.uuid] + "';")
                 if (resultMeasureUsed.rowCount !== 0) {
-                    return res.status(401).send({ "status": 401, "message": "Matéria Prima sendo utilizada por Produção" });
+                    return res.status(200).send({ "status": 200, "message": "Matéria Prima sendo utilizada por Produção" });
                 } else {
                     await db.query("DELETE FROM wpo WHERE uuid='" + [req.body.uuid] + "';")
-                    return res.status(200).send({ "status": 200, "message": "Dados excluidos com sucesso" });
+                    return res.status(201).send({ "status": 201, "message": "Dados excluidos com sucesso" });
                 }
             }
         }

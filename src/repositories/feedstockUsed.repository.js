@@ -74,7 +74,7 @@ exports.updateFeedstockUsed = async (req, res, next) => {
         else if (vToken.status === 200) {
             const findId = await db.query("SELECT feedstockid FROM feedstockused WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
             if (findId.rowCount === 0) {
-                return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
+                return res.status(200).send({ "status": 200, "message": "UUID não encontrado" });
             } else {
                 if (req.body.quantity === '' || req.body.quantity === null || req.body.quantity <= 0 || req.body.quantity <= '0') {
                     return res.status(200).send({ "status": 200, "message": "Quantidade não deve ser 0 ou vazio." });
@@ -98,10 +98,10 @@ exports.deleteFeedstockUsed = async (req, res, next) => {
         else if (vToken.status === 200) {
             const findId = await db.query("SELECT feedstockid FROM feedstockused WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
             if (findId.rowCount === 0) {
-                return res.status(404).send({ "status": 404, "message": "UUID não encontrado" });
+                return res.status(200).send({ "status": 200, "message": "UUID não encontrado" });
             } else {
                 await db.query("DELETE FROM feedstockused WHERE uuid='" + [req.body.uuid] + "';")
-                return res.status(200).send({ "status": 200, "message": "Dados excluidos com sucesso" });
+                return res.status(201).send({ "status": 201, "message": "Dados excluidos com sucesso" });
             }
         }
     } catch (error) {
