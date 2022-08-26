@@ -86,7 +86,7 @@ exports.deleteWPO = async (req, res, next) => {
             } else {
                 const resultMeasureUsed = await db.query("SELECT * FROM wpoused WHERE wpoid='" + [req.body.uuid] + "';")
                 if (resultMeasureUsed.rowCount !== 0) {
-                    return res.status(200).send({ "status": 200, "message": "Custo sendo utilizada por Produção" });
+                    return res.status(200).send({ "status": 200, "message": "Custo sendo utilizado por Produção" });
                 } else {
                     await db.query("DELETE FROM wpo WHERE uuid='" + [req.body.uuid] + "';")
                     return res.status(201).send({ "status": 201, "message": "Dados excluidos com sucesso" });
