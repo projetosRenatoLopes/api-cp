@@ -44,7 +44,7 @@ exports.postWPOUsed = async (req, res, next) => {
             } else {
                 const result = await db.query("SELECT * FROM wpoused WHERE wpoid='" + [req.body.wpoid] + "' AND productionid='" + [req.body.productionid] + "';");
                 if (result.rowCount > 0) {
-                    return res.status(200).send({ "status": 200, "message": "WPO já utilizado" });
+                    return res.status(200).send({ "status": 200, "message": "Custo já utilizado" });
                 } else {
                     const prod = await db.query(`SELECT * FROM production WHERE CAST(uuid as VARCHAR)='${req.body.productionid}';`)
                     if (prod.rowCount === 0) {
