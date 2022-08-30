@@ -1,5 +1,6 @@
 
 const { db } = require('../db');
+const { isEmpty, isZeroOrLess } = require('../utils');
 const { verifyJWT } = require('../utils/checkToken');
 
 exports.getWPOUsed = async (req, res, next) => {
@@ -39,24 +40,35 @@ exports.postWPOUsed = async (req, res, next) => {
         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
         else if (vToken.status === 200) {
-            if (req.body.quantity === '' || req.body.quantity <= 0 || req.body.wpoid === '' || req.body.productionid === '') {
-                return res.status(200).send({ "status": 200, "message": "Produção, Outros Custos e Quantidade não devem ser vazios e Quantiadde deve ser maior que 0." });
+
+            if (isEmpty(req.body.quantity) || isEmpty(req.body.wpoid) || isEmpty(req.body.productionid)) {
+                return res.status(200).send({ "status": 200, "message": "Produção, Outros Custos e Quantidade não devem ser vazios." });
             } else {
-                const result = await db.query("SELECT * FROM wpoused WHERE wpoid='" + [req.body.wpoid] + "' AND productionid='" + [req.body.productionid] + "';");
-                if (result.rowCount > 0) {
-                    return res.status(200).send({ "status": 200, "message": "Custo já utilizado" });
+
+                if (isZeroOrLess(req.body.quantity)) {
+                    return res.status(200).send({ "status": 200, "message": "A quantidade deve ser maior que 0" });
                 } else {
-                    const prod = await db.query(`SELECT * FROM production WHERE CAST(uuid as VARCHAR)='${req.body.productionid}';`)
-                    if (prod.rowCount === 0) {
-                        return res.status(200).send({ "status": 200, "message": "Campo Produção vazio ou não existe." });
+
+                    const result = await db.query("SELECT * FROM wpoused WHERE wpoid='" + [req.body.wpoid] + "' AND productionid='" + [req.body.productionid] + "';");
+                    if (result.rowCount > 0) {
+                        return res.status(200).send({ "status": 200, "message": "Custo já utilizado" });
                     } else {
-                        const fs = await db.query(`SELECT * FROM wpo WHERE CAST(uuid as VARCHAR)='${req.body.wpoid}';`)
-                        if (fs.rowCount === 0) {
-                            return res.status(200).send({ "status": 200, "message": "Campo Outros Custos vazio ou não existe." });
+
+                        const prod = await db.query(`SELECT * FROM production WHERE CAST(uuid as VARCHAR)='${req.body.productionid}';`)
+                        if (prod.rowCount === 0) {
+                            return res.status(200).send({ "status": 200, "message": "Produção não encontrada" });
                         } else {
-                            await db.query("INSERT INTO wpoused (wpoid, quantity, productionid) VALUES ('" + [req.body.wpoid] + "','" + [req.body.quantity] + "','" + [req.body.productionid] + "');");
-                            db.query("UPDATE production SET modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "' WHERE uuid='" + [req.body.productionid] + "';")
-                            return res.status(201).send({ "status": 201, "message": "Dados inseridos com sucesso" });
+
+                            const fs = await db.query(`SELECT * FROM wpo WHERE CAST(uuid as VARCHAR)='${req.body.wpoid}';`)
+                            if (fs.rowCount === 0) {
+                                return res.status(200).send({ "status": 200, "message": "Custo não encontrado" });
+                            } else {
+
+                                await db.query("INSERT INTO wpoused (wpoid, quantity, productionid) VALUES ('" + [req.body.wpoid] + "','" + [req.body.quantity] + "','" + [req.body.productionid] + "');");
+                                db.query("UPDATE production SET modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "' WHERE uuid='" + [req.body.productionid] + "';")
+                                return res.status(201).send({ "status": 201, "message": "Dados inseridos com sucesso" });
+
+                            }
                         }
                     }
                 }
@@ -73,16 +85,20 @@ exports.updateWPOUsed = async (req, res, next) => {
         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
         else if (vToken.status === 200) {
+
             const findId = await db.query("SELECT wpoid FROM wpoused WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
             if (findId.rowCount === 0) {
                 return res.status(200).send({ "status": 200, "message": "UUID não encontrado" });
             } else {
-                if (req.body.quantity === '' || req.body.quantity === null || req.body.quantity <= 0 || req.body.quantity <= '0') {
-                    return res.status(200).send({ "status": 200, "message": "Quantidade não deve ser 0 ou vazio." });
+
+                if (isZeroOrLess(req.body.quantity)) {
+                    return res.status(200).send({ "status": 200, "message": "A quantidade deve ser maior que 0" });
                 } else {
+
                     await db.query("UPDATE wpoused SET quantity='" + [req.body.quantity] + "' WHERE uuid='" + [req.body.uuid] + "';")
                     db.query("UPDATE production SET modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "' WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.productionid] + "' AS VARCHAR);")
                     return res.status(201).send({ "status": 201, "message": "Dados atualizados com sucesso" });
+
                 }
             }
         }

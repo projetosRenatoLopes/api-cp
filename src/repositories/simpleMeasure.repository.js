@@ -1,5 +1,6 @@
 
 const { db } = require('../db');
+const { isEmpty, isZeroOrLess } = require('../utils');
 const { checkProps } = require('../utils/checkProps');
 const { verifyJWT } = require('../utils/checkToken');
 
@@ -28,19 +29,29 @@ exports.postSimpleMeasure = async (req, res, next) => {
         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
         else if (vToken.status === 200) {
-            if (req.body.name === "" || req.body.typemeasure === "" || req.body.quantity === "" || req.body.quantity <= "0" || req.body.quantity <= 0) {
-                return res.status(200).send({ "status": 200, "message": "Nome, Medida e Quantidade não devem ser vazios e Quantidade não deve ser igual ou menor que 0." });
+
+            if (isEmpty(req.body.name) || isEmpty(req.body.typemeasure) || isEmpty(req.body.quantity)) {
+                return res.status(200).send({ "status": 200, "message": "Nome, Medida e Quantidade não devem ser vazios" });
             } else {
-                const resultDesc = await db.query("SELECT * FROM simplemeasure WHERE name='" + [req.body.name] + "'")
-                if (resultDesc.rowCount > 0) {
-                    return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
+
+                if (isZeroOrLess(req.body.quantity)) {
+                    return res.status(200).send({ "status": 200, "message": "Quantidade deve ser maior que zero" });
                 } else {
-                    const measure = await db.query("SELECT * FROM exactmeasure WHERE CAST(uuid as VARCHAR)='" + [req.body.typemeasure] + "'")
-                    if (measure.rowCount === 0) {
-                        return res.status(200).send({ "status": 200, "message": "Campo Medida vazio ou inválido" });
+
+                    const resultDesc = await db.query("SELECT * FROM simplemeasure WHERE name='" + [req.body.name] + "'")
+                    if (resultDesc.rowCount > 0) {
+                        return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
                     } else {
-                        await db.query("INSERT INTO simplemeasure (name, typemeasure, quantity, createby, createdate, modifyby, modifydate) VALUES ('" + [req.body.name] + "','" + [req.body.typemeasure] + "','" + [req.body.quantity] + "','" + vToken.id + "','" + Date.now() + "','" + vToken.id + "','" + Date.now() + "');");
-                        return res.status(201).send({ "status": 201, "message": "Dados inseridos com sucesso" });
+
+                        const measure = await db.query("SELECT * FROM exactmeasure WHERE CAST(uuid as VARCHAR)='" + [req.body.typemeasure] + "'")
+                        if (measure.rowCount === 0) {
+                            return res.status(200).send({ "status": 200, "message": "Campo Medida vazio ou inválido" });
+                        } else {
+
+                            await db.query("INSERT INTO simplemeasure (name, typemeasure, quantity, createby, createdate, modifyby, modifydate) VALUES ('" + [req.body.name] + "','" + [req.body.typemeasure] + "','" + [req.body.quantity] + "','" + vToken.id + "','" + Date.now() + "','" + vToken.id + "','" + Date.now() + "');");
+                            return res.status(201).send({ "status": 201, "message": "Dados inseridos com sucesso" });
+
+                        }
                     }
                 }
             }
@@ -58,23 +69,34 @@ exports.updateSimpleMeasure = async (req, res, next) => {
         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
         else if (vToken.status === 200) {
-            if (req.body.name === "" || req.body.typemeasure === "" || req.body.quantity === "" || req.body.quantity <= "0" || req.body.quantity <= 0) {
-                return res.status(200).send({ "status": 200, "message": "Nome, Medida e Quantidade não devem ser vazios e Quantidade não deve ser igual ou menor que 0." });
+
+            if (isEmpty(req.body.name) || isEmpty(req.body.typemeasure) || isEmpty(req.body.quantity)) {
+                return res.status(200).send({ "status": 200, "message": "Nome, Medida e Quantidade não devem ser vazios" });
             } else {
-                const findId = await db.query("SELECT name FROM simplemeasure WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
-                if (findId.rowCount === 0) {
-                    return res.status(200).send({ "status": 200, "message": "UUID não encontrado" });
+
+                if (isZeroOrLess(req.body.quantity)) {
+                    return res.status(200).send({ "status": 200, "message": "Quantidade deve ser maior que zero" });
                 } else {
-                    const verifyDouble = await db.query("SELECT * FROM simplemeasure where uuid<>'" + [req.body.uuid] + "' and name='" + [req.body.name] + "'")
-                    if (verifyDouble.rowCount > 0) {
-                        return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
+
+                    const findId = await db.query("SELECT name FROM simplemeasure WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
+                    if (findId.rowCount === 0) {
+                        return res.status(200).send({ "status": 200, "message": "UUID não encontrado" });
                     } else {
-                        const measure = await db.query("SELECT * FROM exactmeasure WHERE CAST(uuid as VARCHAR)='" + [req.body.typemeasure] + "'")
-                        if (measure.rowCount === 0) {
-                            return res.status(200).send({ "status": 200, "message": "Campo Medida vazio ou inválido" });
+
+                        const verifyDouble = await db.query("SELECT * FROM simplemeasure where uuid<>'" + [req.body.uuid] + "' and name='" + [req.body.name] + "'")
+                        if (verifyDouble.rowCount > 0) {
+                            return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
                         } else {
-                            await db.query("UPDATE simplemeasure SET name = '" + [req.body.name] + "', typemeasure='" + [req.body.typemeasure] + "', quantity='" + [req.body.quantity] + "', modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "' WHERE uuid='" + [req.body.uuid] + "';")
-                            return res.status(201).send({ "status": 201, "message": "Dados atualizados com sucesso" });
+
+                            const measure = await db.query("SELECT * FROM exactmeasure WHERE CAST(uuid as VARCHAR)='" + [req.body.typemeasure] + "'")
+                            if (measure.rowCount === 0) {
+                                return res.status(200).send({ "status": 200, "message": "Medida não encontrada" });
+                            } else {
+
+                                await db.query("UPDATE simplemeasure SET name = '" + [req.body.name] + "', typemeasure='" + [req.body.typemeasure] + "', quantity='" + [req.body.quantity] + "', modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "' WHERE uuid='" + [req.body.uuid] + "';")
+                                return res.status(201).send({ "status": 201, "message": "Dados atualizados com sucesso" });
+
+                            }
                         }
                     }
                 }
@@ -91,14 +113,17 @@ exports.deleteSimpleMeasure = async (req, res, next) => {
         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
         else if (vToken.status === 200) {
+            
             const findId = await db.query("SELECT name FROM simplemeasure WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
             if (findId.rowCount === 0) {
                 return res.status(200).send({ "status": 200, "message": "UUID não encontrado" });
             } else {
+
                 const resultMeasureUsed = await db.query("SELECT * FROM feedstock WHERE measurement='" + [req.body.uuid] + "';")
                 if (resultMeasureUsed.rowCount !== 0) {
                     return res.status(200).send({ "status": 200, "message": "Medida sendo utilizada por Matéria Prima" });
                 } else {
+
                     const result = await db.query("DELETE FROM simplemeasure WHERE uuid='" + [req.body.uuid] + "';")
                     return res.status(201).send({ "status": 201, "message": "Dados excluidos com sucesso" });
                 }

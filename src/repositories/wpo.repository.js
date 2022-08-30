@@ -1,5 +1,6 @@
 
 const { db } = require('../db');
+const { isEmpty, isZeroOrLess } = require('../utils');
 const { verifyJWT } = require('../utils/checkToken');
 
 exports.getWPO = async (req, res, next) => {
@@ -27,15 +28,24 @@ exports.postWPO = async (req, res, next) => {
         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
         else if (vToken.status === 200) {
-            if (req.body.name === "" || req.body.quantity < 0 || req.body.quantity === "" || req.body.price < 0 || req.body.price === "") {
-                return res.status(200).send({ "status": 200, "message": "Nome, Quantidade e Preço não devem ser vazios. Quantidade e Preço não devem ser iguais ou menores que 0." });
+
+            if (isEmpty(req.body.name) || isEmpty(req.body.quantity) || isEmpty(req.body.price)) {
+                return res.status(200).send({ "status": 200, "message": "Descrição, Quantidade e Preço não podem ser null ou vazios" });
             } else {
-                const resultDesc = await db.query("SELECT * FROM wpo WHERE name='" + [req.body.name] + "'")
-                if (resultDesc.rowCount > 0) {
-                    return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
+
+                if (isZeroOrLess(req.body.quantity)) {
+                    return res.status(200).send({ "status": 200, "message": "A quantidade deve ser maior que 0" });
                 } else {
-                    await db.query("INSERT INTO wpo (name, quantity, price, createby, createdate, modifyby, modifydate) VALUES ('" + [req.body.name] + "','" + [req.body.quantity] + "','" + [req.body.price] + "','" + vToken.id + "','" + Date.now() + "','" + vToken.id + "','" + Date.now() + "');");
-                    return res.status(201).send({ "status": 201, "message": "Dados inseridos com sucesso" });
+
+                    const resultDesc = await db.query("SELECT * FROM wpo WHERE name='" + [req.body.name] + "'")
+                    if (resultDesc.rowCount > 0) {
+                        return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
+                    } else {
+
+                        await db.query("INSERT INTO wpo (name, quantity, price, createby, createdate, modifyby, modifydate) VALUES ('" + [req.body.name] + "','" + [req.body.quantity] + "','" + [req.body.price] + "','" + vToken.id + "','" + Date.now() + "','" + vToken.id + "','" + Date.now() + "');");
+                        return res.status(201).send({ "status": 201, "message": "Dados inseridos com sucesso" });
+
+                    }
                 }
             }
         }
@@ -52,19 +62,29 @@ exports.updateWPO = async (req, res, next) => {
         if (vToken.status === 401) { return res.status(401).send({ "error": 401, "message": vToken.message }) }
         else if (vToken.status === 500) { return res.status(500).send({ "error": 500, "message": vToken.message }) }
         else if (vToken.status === 200) {
-            const findId = await db.query("SELECT name FROM wpo WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
-            if (findId.rowCount === 0) {
-                return res.status(200).send({ "status": 200, "message": "UUID não encontrado" });
+
+            if (isEmpty(req.body.name) || isEmpty(req.body.quantity) || isEmpty(req.body.price)) {
+                return res.status(200).send({ "status": 200, "message": "Descrição, Quantidade e Preço não podem ser null ou vazios" });
             } else {
-                if (req.body.name === "" || req.body.quantity < 0 || req.body.quantity === "" || req.body.price < 0 || req.body.price === "") {
-                    return res.status(200).send({ "status": 200, "message": "Nome, Quantidade e Preço não devem ser vazios. Quantidade e Preço não devem ser iguais ou menores que 0." });
+
+                if (isZeroOrLess(req.body.quantity)) {
+                    return res.status(200).send({ "status": 200, "message": "A quantidade deve ser maior que 0" });
                 } else {
-                    const resultDesc = await db.query("SELECT * FROM wpo WHERE name='" + [req.body.name] + "' AND uuid <> '" + [req.body.uuid] + "'")
-                    if (resultDesc.rowCount > 0) {
-                        return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
+
+                    const findId = await db.query("SELECT name FROM wpo WHERE CAST(uuid AS VARCHAR)=CAST('" + [req.body.uuid] + "' AS VARCHAR);")
+                    if (findId.rowCount === 0) {
+                        return res.status(200).send({ "status": 200, "message": "UUID não encontrado" });
                     } else {
-                        await db.query("UPDATE wpo SET name='" + [req.body.name] + "', quantity='" + [req.body.quantity] + "', price='" + [req.body.price] + "', modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "' WHERE uuid='" + [req.body.uuid] + "';")
-                        return res.status(201).send({ "status": 201, "message": "Dados atualizados com sucesso" });
+
+                        const resultDesc = await db.query("SELECT * FROM wpo WHERE name='" + [req.body.name] + "' AND uuid <> '" + [req.body.uuid] + "'")
+                        if (resultDesc.rowCount > 0) {
+                            return res.status(200).send({ "status": 200, "message": "Essa descrição já existe" });
+                        } else {
+
+                            await db.query("UPDATE wpo SET name='" + [req.body.name] + "', quantity='" + [req.body.quantity] + "', price='" + [req.body.price] + "', modifyby = '" + vToken.id + "', modifydate = '" + Date.now() + "' WHERE uuid='" + [req.body.uuid] + "';")
+                            return res.status(201).send({ "status": 201, "message": "Dados atualizados com sucesso" });
+
+                        }
                     }
                 }
             }
